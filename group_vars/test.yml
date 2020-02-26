@@ -1,0 +1,59 @@
+ldap:
+  base: "dc=test,dc=com"
+  uri: "ldaps://test.com"
+  timelimit: 5
+  timeout: 5
+  network_timeout: 5
+  sudoers_base: "ou=Sudoers,dc=test,dc=com"
+  tls_cacert: "/etc/ssl/certs/test.com.crt"
+  tls_reqcert: "never"
+  cert:
+    name: "test.com.crt"
+
+sssd:
+  sssd:
+    config_file_version: 2
+    services: "nss, pam, sudo"
+    domains: "test.com"
+
+
+  nss:
+    filter_users: "root,ubuntu,openldap,named,avahi,haldaemon,dbus,radiusd,news,nscd"
+    filter_groups: "root,ubuntu,bin,daemon,sys,adm,disk,wheel"
+
+  pam:
+    reconnection_retries: 3
+
+  sudo:
+
+
+  domain:
+    domain: "test.com"
+    id_provider: "ldap"
+    auth_provider: "ldap"
+    chpass_provider: "ldap"
+    sudo_provider: "ldap"
+    access_provider: "ldap"
+
+    ldap_uri: "ldaps://test.com"
+    ldap_chpass_uri: "ldaps://test.com"
+
+    ldap_schema: "rfc2307"
+
+    ldap_search_base: "dc=test,dc=com"
+    ldap_user_object_class: "posixAccount"
+    ldap_user_search_base: "ou=People,dc=test,dc=com"
+    ldap_group_object_class: "posixGroup"
+    ldap_group_search_base: "ou=Groups,dc=test,dc=com"
+    ldap_sudo_search_base: "ou=Sudoers,dc=test,dc=com"
+    ldap_netgroup_search_base: "ou=Netgroups,dc=test,dc=com"
+
+    ldap_access_filter: "loginShell=/bin/bash"
+
+    cache_credentials: "true"
+    entry_cache_timeout: 600
+
+    ldap_tls_reqcert: "never"
+    ldap_tls_cacert: "/etc/ssl/certs/test.com.crt"
+    ldap_id_use_start_tls: "false"
+    ldap_network_timeout: 3

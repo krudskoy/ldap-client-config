@@ -1,0 +1,98 @@
+- name: Install packages
+  apt:
+    name: "{{ packages }}"
+    update_cache: no
+  vars:
+    packages:
+    - sssd
+    - sssd-ldap
+    - sssd-tools
+    - sudo
+
+- name: copy ldap config
+  copy:
+    src: "{{ ldap.cert.name }}"
+    dest: /etc/ssl/certs/{{ ldap.cert.name }}
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy /etc/ldap/ldap.conf
+  template:
+    src: ldap.conf.j2
+    dest: /etc/ldap/ldap.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy sssd 
+  template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: 0600
+
+- name: copy nsswitch
+  copy:
+    src: nsswitch.conf
+    dest: /etc/nsswitch.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy ssh-ldap-conf
+  template:
+    src: ldap.conf.j2
+    dest: /etc/ssh/ldap.conf
+    owner: root
+    group: root
+    mode: 0755
+
+- name: copy ssh-getkey-ldap
+  copy:
+    src: ssh-getkey-ldap
+    dest: /usr/bin/ssh-getkey-ldap
+    owner: root
+    group: root
+    mode: 0755
+
+- lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowGroups'
+    line: 'AllowGroups ubuntu admin kokc'
+
+- lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AuthorizedKeysCommand '
+    line: 'AuthorizedKeysCommand /usr/bin/ssh-getkey-ldap'
+
+- lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AuthorizedKeysCommandUser'
+    line: 'AuthorizedKeysCommandUser nobody'
+
+- lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PubkeyAuthentication'
+    line: 'PubkeyAuthentication yes'
+
+- lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+
+- lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^UsePAM'
+    line: 'UsePAM no'
+
+- name: Restart service sssd, in all cases
+  service:
+    name: sssd
+    state: restarted
+
+- name: Restart service sssd, in all cases
+  service:
+    name: sshd
+    state: restarted
